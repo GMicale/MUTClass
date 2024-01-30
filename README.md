@@ -146,4 +146,83 @@ java -cp ./out MUTClassCV -m Data/BRCA_snp_gene_matrix_with_classes.txt -kmax 5 
 
 <br />
 
+
 ## MUTClass
+
+Train MUTClass on a mutation matrix A and test the algorithm on a mutation matrix B in order to classify samples of B.
+
+<br />
+
+**Usage**:
+
+java -cp ./out MUTClass -train \<trainingSetFile\> -test \<testSetFile\> -d \<listDriverGenes\> -kmax \<positivePanelSize\> -kmin \<negativePanelSize\> -o \<resultsFile\>
+		
+REQUIRED PARAMETERS:
+
+&emsp;-train &emsp; Training mutation matrix file
+
+&emsp;-test &emsp; Test mutation matrix file
+
+OPTIONAL PARAMETERS:
+
+&emsp;-d &emsp;&emsp;List of driver genes (default=training matrix file with classes)
+
+&emsp;-kmax &emsp;&emsp;Size of positive gene panel (default=5)
+
+&emsp;-kmin &emsp;&emsp;Size of negative gene panel (default=50)
+
+&emsp;-o &emsp;Output result file (default='results.txt')
+
+<br />
+
+**Files format**:
+
+<br />
+
+TRAINING MUTATION MATRIX FILE
+
+Same mutation matrix file format described for DMGSFinder. If no list of driver genes is provided, sample classes must be provided in the mutation matrix file. 
+
+<br />
+
+TEST MUTATION MATRIX FILE
+
+A mutation matrix file with no sample classes in the same format described for DMGSFinder.
+
+<br />
+
+OUTPUT RESULT FILE
+
+A text file listing the positive panel, the negative panel and the predicted classes for each sample in the test mutation matrix.
+
+Example:
+
+Positive panel:
+
+[ACAB1, BRAF, DOCK11, LOC100506083, TMEM138]
+
+Negative panel:
+
+[IL1R2, CASP4, IL31RA, PLEKHA6, SPATA31C1]
+
+Predicted classes:
+
+Sample1&emsp;P
+
+Sample2&emsp;N
+
+Sample3&emsp;N
+
+Sample4&emsp;P
+
+Sample5&emsp;P
+
+<br />
+
+**Example**:
+
+Train MUTClass with kmax=10 and kmin=20 on BRCA mutation matrix with sample classes and test it on PCAWG-BRCA mutation matrix.
+
+java -cp ./out MUTClass -train Data/BRCA_snp_gene_matrix_with_classes.txt -test Data/PCAWG-BRCA_gene_matrix.txt -kmax 10 -kmin 20
+
+<br />
