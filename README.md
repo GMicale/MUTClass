@@ -7,6 +7,7 @@ The Java package includes the following 3 software:
 <br />
 
 ## DMGSFinder
+
 DMGSFinder is a greedy algorithm for maximizing (or minimizing) the differential coverage with respect to a set of positive samples and a set of negative samples.
 DMGSFinder is the algorithm used by MUTClass to solve the k-MaxDiffCov (or k-MinDiffCov) problem
 
@@ -14,7 +15,7 @@ DMGSFinder is the algorithm used by MUTClass to solve the k-MaxDiffCov (or k-Min
 
 **Usage**:
 
-java -cp ./out DMGSFinder -m \<mutationsFile\> -d \<listGenes\> -k \<panelSize\> -min -o \<resultsFile\>
+java -cp ./out DMGSFinder -m \<mutationsFile\> -d \<listDriverGenes\> -k \<panelSize\> -min -o \<resultsFile\>
 		
 REQUIRED PARAMETERS:
 
@@ -22,7 +23,7 @@ REQUIRED PARAMETERS:
 
 OPTIONAL PARAMETERS:
 
-&emsp;-d &emsp;&emsp;List of driver genes
+&emsp;-d &emsp;&emsp;List of driver genes (default=matrix file with classes)
 
 &emsp;-k &emsp;&emsp;Size of gene panel (default=10)
 
@@ -94,6 +95,54 @@ java -cp ./out DMGSFinder -m Data/BRCA_snp_gene_matrix_with_classes.txt -min -k 
 <br />
 
 ## MUTClassCV
+
+MUTClassCV performs a cross-validation test of MUTClass algorithm on a mutation matrix
+
+<br />
+
+**Usage**:
+
+java -cp ./out MUTClassCV -m \<mutationsFile\> -d \<listDriverGenes\> -kmax \<positivePanelSize\> -kmin \<negativePanelSize\> -cv \<crossValidationIterations\> -f \<crossValidationFolds\>
+		
+REQUIRED PARAMETERS:
+
+&emsp;-m &emsp; Mutation matrix file
+
+OPTIONAL PARAMETERS:
+
+&emsp;-d &emsp;&emsp;List of driver genes (default=matrix file with classes)
+
+&emsp;-kmax &emsp;&emsp;Size of positive gene panel (default=10)
+
+&emsp;-kmin &emsp;&emsp;Size of negative gene panel (default=10)
+
+&emsp;-cv &emsp;Number of iterations of cross validation (default=10)
+
+&emsp;-f &emsp;&emsp;Number of folds for cross validation (default=5)
+
+<br />
+
+**Files format**:
+
+<br />
+
+MUTATION MATRIX FILE
+
+Same mutation matrix file format described for DMGSFinder. If no list of driver genes is provided, sample classes must be provided in the mutation matrix file. 
+
+<br />
+
+**Output**:
+
+A list of performance statistics returned by test cross-validation test, including true positives, true negatives, false positives, false negatives, unclassified samples, precision, recall, FPR, FNR, specificity, accuracy and F1 score.
+
+<br />
+
+**Example**:
+
+Run 5-fold 10 times repeated cross-validation on BRCA mutation matrix with sample classes, with kmax=5 and kmin=50.
+
+java -cp ./out MUTClassCV -m Data/BRCA_snp_gene_matrix_with_classes.txt -kmax 5 -kmin 50 -cv 10 -f 5
 
 <br />
 
