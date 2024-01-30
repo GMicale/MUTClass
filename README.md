@@ -4,12 +4,13 @@ The Java package includes the following 3 software:
 - **DMGSFinder**: Extract from a mutation matrix a panel of mutated genes which maximizes (or minimizes) the differential coverage between two classes of samples.
 - **MUTClassCV**: Run a cross-validation test of MUTClass algorithm on a mutation matrix 
 - **MUTClass**: Train MUTClass on a mutation matrix A and test the algorithm on a mutation matrix B in order to classify samples of B.
-
+<br />
 
 ## DMGSFinder
 DMGSFinder is a greedy algorithm for maximizing (or minimizing) the differential coverage with respect to a set of positive samples and a set of negative samples.
 DMGSFinder is the algorithm used by MUTClass to solve the k-MaxDiffCov (or k-MinDiffCov) problem
 
+<br />
 
 **Usage**:
 
@@ -29,8 +30,11 @@ OPTIONAL PARAMETERS:
 
 &emsp;-o &emsp;&emsp;Results file (default=print results to standard output)
 
+<br />
 
 **Files format**:
+
+<br />
 
 MUTATION MATRIX FILE
 
@@ -47,7 +51,6 @@ Gene1&emsp;0&emsp;0&emsp;2&emsp;1
 
 Gene2&emsp;1&emsp;0&emsp;3&emsp;0
 
-
 Example with sample classes:
 
 Sample1&emsp;Sample2&emsp;Sample3&emsp;Sample4
@@ -57,6 +60,8 @@ P&emsp;P&emsp;N&emsp;P
 Gene1&emsp;0&emsp;0&emsp;2&emsp;1
 
 Gene2&emsp;1&emsp;0&emsp;3&emsp;0
+
+<br />
 
 RESULTS FILE
 
@@ -71,10 +76,9 @@ DMGS&emsp;Average positive coverage&emsp;Average negative coverage&emsp;Differen
 
 [DOCK11, LOC100506083, TMEM138, IL1R2, CASP4, IL31RA, PLEKHA6, SPATA31C1, FER1L6, TANC2]&emsp;74.39%&emsp;19.0%&emsp;55.39%
 
+<br />
 
 **Examples**:
-
-EXAMPLES:
 
 1. Find a panel with 10 genes which maximizes the differential coverage, starting from a set of driver genes D = {BRCA1,BRCA2}. The positive set will be the set of samples where at least one gene among BRCA1 and BRCA2 is mutated, the negative set will be the one in which neither BRCA1 nor BRCA2 are mutated.
 
@@ -87,7 +91,10 @@ java -cp ./out DMGSFinder -m Data/BRCA_snp_gene_matrix.txt -d BRCA1,BRCA2
 
 java -cp ./out DMGSFinder -m Data/BRCA_snp_gene_matrix_with_classes.txt -min -k 20 -o results.txt
 
+<br />
 
 ## MUTClassCV
+
+<br />
 
 ## MUTClass
