@@ -1,4 +1,3 @@
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
@@ -22,8 +21,8 @@ public class FileManager
             String str=br.readLine();
             String[] sampleNames=str.split("\t");
             Hashtable<String,String> mapSampleClasses=new Hashtable<>();
-            for(int i=0;i<sampleNames.length;i++)
-                mapSampleClasses.put(sampleNames[i],"N");
+            for (String sampleName : sampleNames)
+                mapSampleClasses.put(sampleName, "N");
             mutMatrix=new MutationMatrix();
 
             //Read mutation values
@@ -58,7 +57,7 @@ public class FileManager
             mutMatrix.setMapSampleClasses(mapSampleClasses);
         }
         catch (Exception e){
-            System.out.println(e.toString());
+            System.out.println(e.getMessage());
         }
         return mutMatrix;
     }
@@ -94,7 +93,47 @@ public class FileManager
             br.close();
         }
         catch (Exception e){
-            System.out.println(e.toString());
+            System.out.println(e.getMessage());
+        }
+        return mutMatrix;
+    }
+
+    public MutationMatrix readTestData(String inputFile)
+    {
+        MutationMatrix mutMatrix=null;
+        try
+        {
+            BufferedReader br=new BufferedReader(new FileReader(inputFile));
+
+            //Read samples
+            String str=br.readLine();
+            String[] sampleNames=str.split("\t");
+            Hashtable<String,String> mapSampleClasses=new Hashtable<>();
+            for (String sampleName : sampleNames)
+                mapSampleClasses.put(sampleName, "-");
+            mutMatrix=new MutationMatrix();
+
+            //Read mutation values
+            while((str=br.readLine())!=null)
+            {
+                String[] split=str.split("\t");
+                String gene=split[0];
+                for(int i=1;i<split.length;i++)
+                {
+                    int freq=Integer.parseInt(split[i]);
+                    String sample=sampleNames[i-1];
+                    if(freq>0)
+                        mutMatrix.addMutation(gene,sample);
+                }
+
+            }
+            br.close();
+
+            //Store sample classes information
+            mutMatrix.setMapSampleClasses(mapSampleClasses);
+        }
+        catch (Exception e){
+            System.out.println(e.getMessage());
         }
         return mutMatrix;
     }
@@ -119,7 +158,7 @@ public class FileManager
             {
                 split=str.split("\t");
                 String sample=split[0];
-                int i=1;
+                int i;
                 for(i=1;i<split.length-1;i++)
                 {
                     int freq=Integer.parseInt(split[i]);
@@ -134,7 +173,7 @@ public class FileManager
 
         }
         catch (Exception e){
-            System.out.println(e.toString());
+            System.out.println(e.getMessage());
         }
         return mutMatrix;
     }
@@ -145,7 +184,7 @@ public class FileManager
         try
         {
             BufferedReader br=new BufferedReader(new FileReader(weightsFile));
-            String str="";
+            String str;
             while((str=br.readLine())!=null)
             {
                 String[] split=str.split("\t");
@@ -156,7 +195,7 @@ public class FileManager
             br.close();
         }
         catch(Exception e) {
-            System.out.println(e.toString());
+            System.out.println(e.getMessage());
         }
         return mapWeights;
     }
@@ -173,7 +212,7 @@ public class FileManager
             br.close();
         }
         catch(Exception e){
-            System.out.println(e.toString());
+            System.out.println(e.getMessage());
         }
         return positiveSet;
     }
@@ -195,15 +234,15 @@ public class FileManager
                     String gene=split[0];
                     String[] split2=gene.split("_");
                     String[] split3=split2[0].split(",");
-                    for(int j=0;j<split3.length;j++)
+                    for (String s : split3)
                     {
-                        if(driverGenesSet.contains(split3[j]))
+                        if (driverGenesSet.contains(s))
                         {
-                            for(int i=1;i<split.length;i++)
+                            for (int i = 1; i < split.length; i++)
                             {
-                                int freq=Integer.parseInt(split[i]);
-                                if(freq>0)
-                                    positiveSet.add(setSamples[i-1]);
+                                int freq = Integer.parseInt(split[i]);
+                                if (freq > 0)
+                                    positiveSet.add(setSamples[i - 1]);
                             }
                         }
                     }
@@ -211,7 +250,7 @@ public class FileManager
                 br.close();
             }
             catch(Exception e) {
-                System.out.println(e);
+                System.out.println(e.getMessage());
             }
         }
         else
@@ -237,7 +276,7 @@ public class FileManager
                 bw.close();
             }
             catch (Exception e){
-                System.out.println(e);
+                System.out.println(e.getMessage());
             }
             System.out.println("Results written to "+outputFile);
         }
@@ -254,7 +293,25 @@ public class FileManager
             bw.close();
         }
         catch (Exception e){
-            System.out.println(e);
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void writeMUTClassResults(String resultsFile, Vector<String> panelPosGenes, Vector<String> panelNegGenes, Hashtable<String,String> predictedClasses)
+    {
+        try{
+            BufferedWriter bw=new BufferedWriter(new FileWriter(resultsFile));
+            bw.write("Positive panel:\n");
+            bw.write(panelPosGenes+"\n\n");
+            bw.write("Negative panel:\n");
+            bw.write(panelNegGenes+"\n\n");
+            bw.write("Predicted classes:\n");
+            for(String sample : predictedClasses.keySet())
+                bw.write(sample+"\t"+predictedClasses.get(sample)+"\n");
+            bw.close();
+        }
+        catch(Exception e){
+            System.out.println(e.getMessage());
         }
     }
 }

@@ -10,7 +10,6 @@ public class MUTClassCV
         String weightsFile=null;
         int maxNumSolGenesPos=10;
         int maxNumSolGenesNeg=10;
-        double alpha=0.5;
         int numIterCV=10;
         int numFolds=5;
 
@@ -22,9 +21,8 @@ public class MUTClassCV
                 case "-m" -> mutationsFile = args[++i];
                 case "-d" -> listDriverGenes = args[++i];
                 case "-w" -> weightsFile = args[++i];
-                case "-solp" -> maxNumSolGenesPos = Integer.parseInt(args[++i]);
-                case "-soln" -> maxNumSolGenesNeg = Integer.parseInt(args[++i]);
-                case "-a" -> alpha = Double.parseDouble(args[++i]);
+                case "-kmax" -> maxNumSolGenesPos = Integer.parseInt(args[++i]);
+                case "-kmin" -> maxNumSolGenesNeg = Integer.parseInt(args[++i]);
                 case "-cv" -> numIterCV = Integer.parseInt(args[++i]);
                 case "-f" -> numFolds = Integer.parseInt(args[++i]);
                 default -> {
@@ -74,10 +72,7 @@ public class MUTClassCV
         //Read gene weights (if specified)
         HashMap<String,Double> mapWeights;
         if(weightsFile==null)
-        {
             mapWeights = null;
-            alpha=1.0;
-        }
         else
             mapWeights=fm.readWeightsFile(weightsFile);
 
@@ -86,8 +81,14 @@ public class MUTClassCV
         double avgPrecision=0.0;
         double avgRecall=0.0;
         double avgFpr=0.0;
+        double avgFnr=0.0;
         double avgSpecificity=0.0;
-        double avgBalancedAccuracy=0.0;
+        double avgUnclassified=0.0;
+        double avgTruePositives=0.0;
+        double avgTrueNegatives=0.0;
+        double avgFalsePositives=0.0;
+        double avgFalseNegatives=0.0;
+        double avgF1=0.0;
 
         for(i=0;i<numIterCV;i++)
         {
@@ -118,6 +119,7 @@ public class MUTClassCV
             double trueNegatives=0.0;
             double falsePositives=0.0;
             double falseNegatives=0.0;
+            double unclassified=0.0;
 
             for(j=0;j<numFolds;j++)
             {
@@ -135,12 +137,11 @@ public class MUTClassCV
                 Hashtable<String,String> subSampleClasses=Utility.extractSubSampleClasses(mapSampleClasses,trainingSetSamples);
 
                 //Run MUTClass to find panels of mutated genes
-                DMGSFinderApp mc=new DMGSFinderApp(subMutationData,subSampleClasses,mapWeights,true,maxNumSolGenesPos,alpha);
+                DMGSFinderApp mc=new DMGSFinderApp(subMutationData,subSampleClasses,mapWeights,true,maxNumSolGenesPos);
                 Vector<String> panelPosGenes=mc.runAlgorithm();
-                mc=new DMGSFinderApp(subMutationData,subSampleClasses,mapWeights,false,maxNumSolGenesNeg,alpha);
+                mc=new DMGSFinderApp(subMutationData,subSampleClasses,mapWeights,false,maxNumSolGenesNeg);
                 Vector<String> panelNegGenes=mc.runAlgorithm();
-                //System.out.println("Panel size for positives: "+panelPosGenes.size());
-                //System.out.println("Panel size for negatives: "+panelNegGenes.size());
+                //System.out.println("Panel sizes: "+panelPosGenes.size()+"\t"+panelNegGenes.size());
 
                 //Make classification
                 RuleClassifier rc=new RuleClassifier(panelPosGenes,panelNegGenes);
@@ -152,6 +153,7 @@ public class MUTClassCV
                 trueNegatives+=accuracyResults.get("TN");
                 falsePositives+=accuracyResults.get("FP");
                 falseNegatives+=accuracyResults.get("FN");
+                unclassified+=accuracyResults.get("Unclassified");
 
             }
             //System.out.println();
@@ -165,22 +167,29 @@ public class MUTClassCV
             double recall=truePositives/(truePositives+falseNegatives);
             double specificity=trueNegatives/(trueNegatives+falsePositives);
             double fpr=falsePositives/(falsePositives+trueNegatives);
+            double fnr=falseNegatives/(falseNegatives+truePositives);
             double accuracy=(truePositives+trueNegatives)/(truePositives+trueNegatives+falsePositives+falseNegatives);
-            double balancedAccuracy=(recall+specificity)/2;
+            double f1=2*(precision*recall/(precision+recall));
+
             /*System.out.println("Accuracy: "+accuracy);
             System.out.println("Precision: "+precision);
             System.out.println("Sensitivity/Recall/TPR: "+recall);
             System.out.println("Specificity: "+specificity);
-            System.out.println("FPR: "+fpr);
-            System.out.println("Balanced accuracy: "+balancedAccuracy);*/
+            System.out.println("FPR: "+fpr);*/
 
             //Update average statistics
             avgAccuracy+=accuracy;
             avgPrecision+=precision;
             avgRecall+=recall;
             avgFpr+=fpr;
+            avgFnr+=fnr;
             avgSpecificity+=specificity;
-            avgBalancedAccuracy+=balancedAccuracy;
+            avgUnclassified+=unclassified;
+            avgTruePositives+=truePositives;
+            avgTrueNegatives+=trueNegatives;
+            avgFalsePositives+=falsePositives;
+            avgFalseNegatives+=falseNegatives;
+            avgF1+=f1;
 
         }
 
@@ -188,30 +197,41 @@ public class MUTClassCV
         avgPrecision/=numIterCV;
         avgRecall/=numIterCV;
         avgFpr/=numIterCV;
+        avgFnr/=numIterCV;
         avgSpecificity/=numIterCV;
-        avgBalancedAccuracy/=numIterCV;
+        avgUnclassified/=numIterCV;
+        avgTruePositives/=numIterCV;
+        avgTrueNegatives/=numIterCV;
+        avgFalsePositives/=numIterCV;
+        avgFalseNegatives/=numIterCV;
+        avgF1/=numIterCV;
+
+        System.out.println("AVERAGE TRUE POSITIVES: "+((double)Math.round(avgTruePositives*100))/100);
+        System.out.println("AVERAGE TRUE NEGATIVES: "+((double)Math.round(avgTrueNegatives*100))/100);
+        System.out.println("AVERAGE FALSE POSITIVES: "+((double)Math.round(avgFalsePositives*100))/100);
+        System.out.println("AVERAGE FALSE NEGATIVES: "+((double)Math.round(avgFalseNegatives*100))/100);
+        System.out.println("AVERAGE UNCLASSIFIED: "+((double)Math.round(avgUnclassified*100))/100);
         System.out.println("AVERAGE PRECISION: "+((double)Math.round(avgPrecision*10000))/100+"%");
         System.out.println("AVERAGE SENSITIVITY/RECALL/TPR: "+((double)Math.round(avgRecall*10000))/100+"%");
         System.out.println("AVERAGE FPR: "+((double)Math.round(avgFpr*10000))/100+"%");
+        System.out.println("AVERAGE FNR: "+((double)Math.round(avgFnr*10000))/100+"%");
         System.out.println("AVERAGE SPECIFICITY: "+((double)Math.round(avgSpecificity*10000))/100+"%");
         System.out.println("AVERAGE ACCURACY: "+((double)Math.round(avgAccuracy*10000))/100+"%");
-        System.out.println("AVERAGE BALANCED ACCURACY: "+((double)Math.round(avgBalancedAccuracy*10000))/100+"%");
+        System.out.println("AVERAGE F1 SCORE: "+((double)Math.round(avgF1*10000))/100+"%");
         System.out.println("------------------------");
     }
 
     private static void printHelp()
     {
         String help = "Usage: java -cp ./out MUTClassCV -m <mutationsFile> [-d <listDriverGenes> " +
-                "-w <weightsFile> -solp <maxNumSolutionGenesPosRule> -soln <maxNumSolutionGenesNegRule> " +
-                "-a <alpha> -cv <crossValidationIterations> -f <crossValidationFolds>]\n\n";
+                "-kmax <positivePanelSize> -kmin <negativePanelSize> " +
+                "-cv <crossValidationIterations> -f <crossValidationFolds>]\n\n";
         help+="REQUIRED PARAMETERS:\n";
         help+="-m\tMutation matrix file\n\n";
         help+="OPTIONAL PARAMETERS:\n";
         help+="-d\tList of driver genes (default=matrix file with classes provided as input)\n";
-        help+="-w\tFile of gene weights\n";
-        help+="-solp\tMaximum number of genes in the positive rule (default=10)\n";
-        help+="-soln\tMaximum number of genes in the negative rule (default=10)\n";
-        help+="-a\tAlpha parameter to combine differential coverage and weight scores (default=0.5 or 1.0 if weight are not specified)\n";
+        help+="-kmax\tSize of positive gene panel (default=10)\n";
+        help+="-kmin\tSize of negative gene panel (default=10)\n";
         help+="-cv\tNumber of iterations of cross validation (default=10)\n";
         help+="-f\tNumber of folds for cross validation (default=5)\n\n";
         System.out.println(help);

@@ -8,7 +8,6 @@ public class DMGSFinder
        String listDriverGenes=null;
        String weightsFile=null;
        int maxNumSolGenes=10;
-       double alpha=0.5;
        String outputFile=null;
        boolean maximization=true;
 
@@ -20,8 +19,8 @@ public class DMGSFinder
                case "-m" -> mutationsFile = args[++i];
                case "-d" -> listDriverGenes = args[++i];
                case "-w" -> weightsFile = args[++i];
-               case "-ms" -> maxNumSolGenes = Integer.parseInt(args[++i]);
-               case "-a" -> alpha = Double.parseDouble(args[++i]);
+               case "-k" -> maxNumSolGenes = Integer.parseInt(args[++i]);
+               case "-min" -> maximization=false;
                case "-o" -> outputFile = args[++i];
                default -> {
                    System.out.println("Error! Unrecognizable command '" + args[i] + "'");
@@ -61,16 +60,12 @@ public class DMGSFinder
        //Read gene weights (if specified)
        HashMap<String,Double> mapWeights;
        if(weightsFile==null)
-       {
            mapWeights = null;
-           alpha=1.0;
-       }
        else
            mapWeights=fm.readWeightsFile(weightsFile);
 
        //Build the set of candidate genes
        HashSet<String> setGenes;
-       double totalCandWeight=0.0;
        if(mapWeights==null)
            //setGenes=mutMatrix.getAllGenes();
            setGenes=Utility.getCandidateGenes(mutationData,setPositives,setNegatives,maximization);
@@ -81,10 +76,7 @@ public class DMGSFinder
            for(String gene : mutGenes)
            {
                if(mapWeights.containsKey(gene))
-               {
                    setGenes.add(gene);
-                   totalCandWeight+=mapWeights.get(gene);
-               }
            }
        }
 
@@ -98,7 +90,6 @@ public class DMGSFinder
        double lastPosCov=1.0;
        double lastNegCov=1.0;
        double lastDiffCov=1.0;
-       double totalWeight=0.0;
        int iter=1;
        while(currSol.size()<maxNumSolGenes)
        {
@@ -106,7 +97,7 @@ public class DMGSFinder
 
            //Find the gene that, if added to current solution, maximizes (minimizes) the differential coverage
            Vector<String> bestRes=Utility.findBestSol(setGenes,mutationData,mapSampleClasses,currTotalPosCov,currTotalNegCov,
-                   currSol.size(),maximization,numPositives,numNegatives,alpha,mapWeights,totalCandWeight);
+                   currSol.size(),maximization,numPositives,numNegatives,mapWeights);
            String bestGene=bestRes.get(0);
            double bestAvgPosCov=Double.parseDouble(bestRes.get(1));
            double bestAvgNegCov=Double.parseDouble(bestRes.get(2));
@@ -115,8 +106,6 @@ public class DMGSFinder
            double posCovPerc=((double)Math.round(bestAvgPosCov*10000))/100;
            double negCovPerc=((double)Math.round(bestAvgNegCov*10000))/100;
            double diffCovPerc=((double)Math.round(bestDiffCov*10000))/100;
-           //System.out.println(bestGene);
-           //System.out.println(bestDiffCov);
            System.out.println("Best gene: "+bestGene+"\t"+"PosCov: "+posCovPerc+"%\tNegCov: "+negCovPerc+"%\tDiffCov: "+diffCovPerc+"%\tWeight: "+bestWeight);
 
            //Update current solution
@@ -134,7 +123,6 @@ public class DMGSFinder
            lastPosCov=posCovPerc;
            lastNegCov=negCovPerc;
            lastDiffCov=diffCovPerc;
-           totalWeight+=bestWeight;
            iter++;
        }
 
@@ -146,14 +134,13 @@ public class DMGSFinder
     private static void printHelp()
     {
         String help = "Usage: java -cp ./out DMGSFinder -m <mutationsFile> [-d <listGenes> " +
-                "-w <weightsFile> -ms <maxNumSolutionGenes> -a <alpha> -o <resultsFile>]\n\n";
+                "-k <panelSize> -min -o <resultsFile>]\n\n";
         help+="REQUIRED PARAMETERS:\n";
         help+="-m\tMutation matrix file\n\n";
         help+="OPTIONAL PARAMETERS:\n";
         help+="-d\tList of driver genes\n";
-        help+="-w\tFile of gene weights\n";
-        help+="-ms\tMaximum number of genes in the reported solution (default=10)\n";
-        help+="-a\tAlpha parameter to combine differential coverage and weight scores (default=0.5 or 1.0 if weight are not specified)\n";
+        help+="-k\tSize of gene panel (default=10)\n";
+        help+="-min\tSolve the k-MinDiffCov problem (default=solve k-MaxDiffCov problem)\n";
         help+="-o\tResults file (default=print results to standard output)\n\n";
         System.out.println(help);
     }

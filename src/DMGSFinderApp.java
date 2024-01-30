@@ -7,24 +7,21 @@ public class DMGSFinderApp
     private final HashMap<String,Double> mapWeights;
     private final boolean maximization;
     private final int maxNumSolGenes;
-    private final double alpha;
 
     public DMGSFinderApp(HashMap<String,HashSet<String>> mutationData, Hashtable<String,String> mapSampleClasses,
-                       HashMap<String,Double> mapWeights, boolean maximization, int maxNumSolGenes, double alpha)
+                       HashMap<String,Double> mapWeights, boolean maximization, int maxNumSolGenes)
     {
         this.mutationData=mutationData;
         this.mapSampleClasses=mapSampleClasses;
         this.mapWeights=mapWeights;
         this.maximization=maximization;
         this.maxNumSolGenes=maxNumSolGenes;
-        this.alpha=alpha;
     }
 
     public Vector<String> runAlgorithm()
     {
         //Build the set of candidate genes
         HashSet<String> setGenes;
-        double totalCandWeight=0.0;
         if(mapWeights==null)
             //setGenes=new HashSet<>(mutationData.keySet());
             setGenes=Utility.getCandidateGenes(mutationData,mapSampleClasses,maximization);
@@ -35,11 +32,7 @@ public class DMGSFinderApp
             for(String gene : mutGenes)
             {
                 if(mapWeights.containsKey(gene))
-                {
                     setGenes.add(gene);
-                    totalCandWeight+=mapWeights.get(gene);
-                }
-
             }
         }
 
@@ -58,8 +51,7 @@ public class DMGSFinderApp
             else
                 numNegatives++;
         }
-        //System.out.println(numPositives);
-        //System.out.println(numNegatives);
+        //System.out.println(numPositives+"\t"+numNegatives);
         if(numPositives==0 || numNegatives==0)
             return null;
 
@@ -68,7 +60,7 @@ public class DMGSFinderApp
         {
             //Find the gene that, if added to current solution, maximizes (minimizes) the differential coverage
             Vector<String> bestRes=Utility.findBestSol(setGenes,mutationData,mapSampleClasses,currTotalPosCov,currTotalNegCov,
-                    currSol.size(),maximization,numPositives,numNegatives,alpha,mapWeights,totalCandWeight);
+                    currSol.size(),maximization,numPositives,numNegatives,mapWeights);
             String bestGene=bestRes.get(0);
 
             //Update current solution

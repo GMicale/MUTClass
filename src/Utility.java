@@ -9,7 +9,7 @@ public class Utility
         HashSet<String> setCandidateGenes=new HashSet<>();
         for(String gene : mutData.keySet())
         {
-            Set<String> commonSamples = new HashSet<String>(mutData.get(gene));
+            Set<String> commonSamples = new HashSet<>(mutData.get(gene));
             if(maximization)
                 commonSamples.retainAll(setPositives);
             else
@@ -44,7 +44,7 @@ public class Utility
     public static Vector<String> findBestSol(HashSet<String> setUnexploredGenes, HashMap<String,HashSet<String>> mapMutations,
                                              Hashtable<String,String> mapSampleClasses, int currTotalPosCov,
                                              int currTotalNegCov, int cardinalitySol, boolean maximization, int numPositives,
-                                              int numNegatives, double alpha, HashMap<String,Double> mapWeights, double totalCandWeight)
+                                              int numNegatives, HashMap<String,Double> mapWeights)
     {
         double bestWeight=0.0;
         double bestScore=Double.MAX_VALUE;
@@ -156,13 +156,5 @@ public class Utility
         return subSampleClasses;
     }
 
-    public static void normalizeWeights(HashMap<String,Double> mapWeights)
-    {
-        double total=0.0;
-        for(double weight : mapWeights.values())
-            total+=weight;
-        for(String gene : mapWeights.keySet())
-            mapWeights.put(gene,mapWeights.get(gene)/total);
-    }
 
 }
